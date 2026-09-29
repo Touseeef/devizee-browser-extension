@@ -1,0 +1,9 @@
+{
+  "name": "com.devizee.native_host",
+  "description": "Devizee Native Messaging Bridge Host",
+  "path": "devizee_host.exe",
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://*/*"
+  ]
+}

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Devizee Extension Settings</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #121826;
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: rgba(255, 255, 255, 0.08);
+      --success: #10b981;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      padding: 32px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header img {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+    }
+
+    .header h1 {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 18px;
+    }
+
+    .card-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .card-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+      line-height: 1.4;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+
+    select, input[type="number"], textarea {
+      width: 100%;
+      background: #0d121f;
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      outline: none;
+    }
+
+    select:focus, input[type="number"]:focus, textarea:focus {
+      border-color: var(--accent);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 70px;
+      font-family: monospace;
+      font-size: 12px;
+    }
+
+    .btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 10px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      margin-left: 10px;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+    }
+
+    .save-status {
+      display: inline-block;
+      margin-left: 14px;
+      font-size: 12px;
+      color: var(--success);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .save-status.show {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <img src="icons/icon48.png" alt="Devizee Logo">
+    <div>
+      <h1>Devizee Extension Settings</h1>
+      <div style="font-size: 12px; color: var(--text-muted);">Privacy-Focused Media Relay & Detector</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Desktop Connection Mode</div>
+    <div class="card-desc">Choose how the extension talks to your Devizee desktop application.</div>
+    <div class="form-group">
+      <select id="targetMode">
+        <option value="auto">Auto-Detect (Devizee Lite or Devizee Pro)</option>
+        <option value="lite">Devizee Lite (Port 42421)</option>
+        <option value="pro">Devizee Pro (Port 42422)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Browser Download Interception</div>
+    <div class="card-desc">Optionally intercept normal browser downloads and route them through Devizee's accelerated engine.</div>
+    
+    <div class="form-group">
+      <label class="form-label">Minimum File Size Threshold (MB)</label>
+      <input type="number" id="minFileSizeMB" min="1" max="1000" value="10">
+      <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Files smaller than this threshold are handled by your browser directly.</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Excluded Domains (one per line)</label>
+      <textarea id="excludedDomains" placeholder="localhost&#10;127.0.0.1&#10;bank.com"></textarea>
+    </div>
+  </div>
+
+  <div style="margin-top: 20px;">
+    <button id="saveBtn" class="btn">Save Changes</button>
+    <button id="resetBtn" class="btn btn-secondary">Reset to Defaults</button>
+    <span id="saveStatus" class="save-status">✓ Settings saved!</span>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>
