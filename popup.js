@@ -183,7 +183,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  function renderMediaItems(items) {
+  function renderMediaItems(rawItems) {
+    // Deduplicate by URL or title
+    const items = [];
+    const seen = new Set();
+    for (const item of (rawItems || [])) {
+      const key = (item.url || item.title || "").trim();
+      if (key && !seen.has(key)) {
+        seen.add(key);
+        items.push(item);
+      }
+    }
+
     updateDownloadTabBtn(items);
 
     if (!items || items.length === 0) {
@@ -208,7 +219,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       const card = document.createElement("div");
       card.className = "media-list-item";
 
-      const typeLabel = item.type.toUpperCase();
+      let typeLabel = "VIDEO";
+      if (item.type === "audio") typeLabel = "AUDIO";
+      else if (item.type === "file") typeLabel = "FILE";
+
       const metaParts = [];
       if (item.resolution) metaParts.push(item.resolution);
       if (item.duration) metaParts.push(item.duration);

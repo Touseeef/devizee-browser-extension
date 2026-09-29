@@ -196,7 +196,7 @@
     // 2. Stream Site Watch Page fallback (if video element isn't in top DOM e.g. shadow DOM or iframe)
     if (isWatch && items.length === 0) {
       items.push({
-        type: "stream",
+        type: "video",
         url: window.location.href,
         title: document.title.replace(/ - YouTube$/, "").replace(/ \/ X$/, "").trim() || "Web Video Stream",
         source: window.location.hostname,
@@ -233,7 +233,7 @@
         if (!seenUrls.has(src)) {
           seenUrls.add(src);
           items.push({
-            type: "stream",
+            type: "video",
             url: src,
             title: ifr.title || "Embedded Video Player",
             isPlaying: false
