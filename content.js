@@ -80,6 +80,54 @@
     return STREAM_DOMAINS.some((d) => host === d || host.endsWith("." + d));
   }
 
+  function isVideoWatchUrl(urlStr) {
+    try {
+      const url = new URL(urlStr || window.location.href);
+      const host = url.hostname.toLowerCase();
+      const path = url.pathname.toLowerCase();
+
+      if (host.includes("youtube.com")) {
+        return path.startsWith("/watch") || path.startsWith("/shorts/") || path.startsWith("/live/") || path.startsWith("/embed/");
+      }
+      if (host === "youtu.be") {
+        return path.length > 1;
+      }
+      if (host.includes("tiktok.com")) {
+        return path.includes("/video/") || path.includes("/v/");
+      }
+      if (host.includes("instagram.com")) {
+        return path.startsWith("/reel/") || path.startsWith("/reels/") || path.startsWith("/p/") || path.startsWith("/tv/");
+      }
+      if (host.includes("twitter.com") || host.includes("x.com")) {
+        return path.includes("/status/");
+      }
+      if (host.includes("reddit.com")) {
+        return path.includes("/comments/") || path.includes("/r/");
+      }
+      if (host.includes("facebook.com") || host.includes("fb.watch")) {
+        return path.includes("/watch") || path.includes("/videos") || path.includes("/reel") || host === "fb.watch";
+      }
+      if (host.includes("vimeo.com")) {
+        return /\/\d+/.test(path);
+      }
+      if (host.includes("twitch.tv")) {
+        return path.startsWith("/videos/") || (path.split("/").filter(Boolean).length === 1 && !["directory", "downloads", "jobs", "p"].includes(path.slice(1)));
+      }
+      if (host.includes("bilibili.com")) {
+        return path.startsWith("/video/");
+      }
+      if (host.includes("dailymotion.com")) {
+        return path.startsWith("/video/");
+      }
+      if (host.includes("threads.net")) {
+        return path.includes("/post/");
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
   function formatTime(secs) {
     if (!secs || isNaN(secs) || !isFinite(secs)) return "";
     const m = Math.floor(secs / 60);
@@ -92,22 +140,19 @@
   function scanMediaOnPage() {
     const items = [];
     const seenUrls = new Set();
+    const isWatch = isVideoWatchUrl(window.location.href);
 
-    // 1. Current Stream Site Page URL (YouTube, Vimeo, etc.)
-    if (isStreamSite()) {
-      items.push({
-        type: "stream",
-        url: window.location.href,
-        title: document.title.replace(/ - YouTube$/, "").replace(/ \/ X$/, "").trim() || "Web Video Stream",
-        source: window.location.hostname,
-        isPlaying: true
-      });
-      seenUrls.add(window.location.href);
-    }
-
-    // 2. Video Elements on Page
+    // 1. Direct Video Elements on Page
     const videoEls = Array.from(document.querySelectorAll("video"));
+    let anyVideoPlaying = false;
+
     videoEls.forEach((v, index) => {
+      // Filter out hidden 0-dimension tracking tags
+      const rect = v.getBoundingClientRect();
+      const hasVisibleBox = (rect.width > 24 && rect.height > 24) || v.offsetWidth > 24 || v.offsetHeight > 24;
+      const isPlaying = !v.paused && !v.ended && v.currentTime > 0;
+      if (isPlaying) anyVideoPlaying = true;
+
       let src = v.currentSrc || v.src;
       if (!src) {
         const sourceEl = v.querySelector("source");
@@ -117,14 +162,14 @@
       // Find nearest descriptive title
       let title = v.getAttribute("title") || v.getAttribute("aria-label");
       if (!title) {
-        const parentCard = v.closest("article, section, [data-video-id], .video-card");
+        const parentCard = v.closest("article, section, [data-video-id], .video-card, #movie_player, .html5-video-player");
         if (parentCard) {
-          const heading = parentCard.querySelector("h1, h2, h3, h4, [data-title]");
+          const heading = parentCard.querySelector("h1, h2, h3, h4, [data-title], .ytp-title-link");
           if (heading) title = heading.textContent.trim();
         }
       }
       if (!title) {
-        title = document.title || `Video Element #${index + 1}`;
+        title = document.title.replace(/ - YouTube$/, "").replace(/ \/ X$/, "").trim() || `Video Element #${index + 1}`;
       }
 
       let resolution = "";
@@ -132,7 +177,8 @@
         resolution = `${v.videoWidth}x${v.videoHeight}`;
       }
 
-      const mediaUrl = src || (isStreamSite() ? window.location.href : null);
+      // For stream platforms, prefer page URL so yt-dlp receives the canonical URL
+      const mediaUrl = isWatch ? window.location.href : (src || (hasVisibleBox ? window.location.href : null));
       if (mediaUrl && !seenUrls.has(mediaUrl)) {
         seenUrls.add(mediaUrl);
         items.push({
@@ -141,11 +187,23 @@
           title: title.slice(0, 100),
           duration: formatTime(v.duration),
           resolution,
-          isPlaying: !v.paused && !v.ended && v.readyState > 2,
+          isPlaying,
           poster: v.poster || ""
         });
       }
     });
+
+    // 2. Stream Site Watch Page fallback (if video element isn't in top DOM e.g. shadow DOM or iframe)
+    if (isWatch && items.length === 0) {
+      items.push({
+        type: "stream",
+        url: window.location.href,
+        title: document.title.replace(/ - YouTube$/, "").replace(/ \/ X$/, "").trim() || "Web Video Stream",
+        source: window.location.hostname,
+        isPlaying: anyVideoPlaying || (videoEls.length > 0 && videoEls.some((v) => !v.paused))
+      });
+      seenUrls.add(window.location.href);
+    }
 
     // 3. Audio Elements on Page
     const audioEls = Array.from(document.querySelectorAll("audio"));
@@ -162,7 +220,7 @@
           url: src,
           title: a.getAttribute("title") || `Audio Track #${index + 1}`,
           duration: formatTime(a.duration),
-          isPlaying: !a.paused && !a.ended
+          isPlaying: !a.paused && !a.ended && a.currentTime > 0
         });
       }
     });
@@ -200,11 +258,19 @@
       }
     }
 
+    // Sort items so actively playing media is always first
+    items.sort((a, b) => (b.isPlaying ? 1 : 0) - (a.isPlaying ? 1 : 0));
+
     detectedMediaCache = items;
 
-    // Report detected count to background service worker for badge
+    // Report detected count & playback status to background service worker for badge
     try {
-      chrome.runtime.sendMessage({ action: "updateMediaBadge", count: items.length });
+      const isPlaying = items.some((m) => m.isPlaying);
+      chrome.runtime.sendMessage({
+        action: "mediaStateChanged",
+        isPlaying,
+        count: items.length
+      });
     } catch {}
 
     return items;
@@ -416,6 +482,36 @@
 
   // ─── Floating Grabber Widget ───
 
+  function updateWidgetState() {
+    if (isDismissed) return;
+    const mediaList = scanMediaOnPage();
+
+    if (mediaList.length === 0) {
+      if (widget) {
+        widget.classList.remove("devizee-visible");
+      }
+      return;
+    }
+
+    if (!widget) {
+      initWidget();
+      return;
+    }
+
+    widget.classList.add("devizee-visible");
+    const actionEl = widget.querySelector("#devizee-pill-action");
+    if (!actionEl) return;
+
+    const playingItem = mediaList.find((m) => m.isPlaying);
+    if (playingItem) {
+      actionEl.innerHTML = `<span style="color:#10b981; font-weight:bold; margin-right:4px;">▶</span> Send Playing Video`;
+    } else if (mediaList.length > 1) {
+      actionEl.textContent = `Devizee (${mediaList.length} detected)`;
+    } else {
+      actionEl.textContent = "Download in Devizee";
+    }
+  }
+
   async function initWidget() {
     if (isDismissed || widget) return;
 
@@ -429,14 +525,16 @@
     }
 
     const mediaList = scanMediaOnPage();
-    if (mediaList.length === 0 && !isStreamSite()) {
+    if (mediaList.length === 0) {
       return;
     }
 
-    const count = mediaList.length;
+    const playingItem = mediaList.find((m) => m.isPlaying);
     let label = "Download in Devizee";
-    if (count > 1) {
-      label = `Devizee (${count} detected)`;
+    if (playingItem) {
+      label = `<span style="color:#10b981; font-weight:bold; margin-right:4px;">▶</span> Send Playing Video`;
+    } else if (mediaList.length > 1) {
+      label = `Devizee (${mediaList.length} detected)`;
     }
 
     widget = document.createElement("div");
@@ -491,7 +589,7 @@
         setTimeout(() => {
           if (widget) {
             widget.classList.remove("devizee-success");
-            actionEl.textContent = detectedMediaCache.length > 1 ? `Devizee (${detectedMediaCache.length} detected)` : "Download in Devizee";
+            updateWidgetState();
           }
         }, 2200);
       });
@@ -545,11 +643,8 @@
   const observer = new MutationObserver(() => {
     if (debounceTimeout) clearTimeout(debounceTimeout);
     debounceTimeout = setTimeout(() => {
-      scanMediaOnPage();
-      if (!isDismissed && !widget) {
-        initWidget();
-      }
-    }, 1000);
+      updateWidgetState();
+    }, 800);
   });
 
   observer.observe(document.documentElement, {
@@ -557,14 +652,24 @@
     subtree: true
   });
 
+  // Real-time Video Playback Listeners (instant detection when user plays/pauses)
+  const onMediaPlaybackEvent = () => {
+    setTimeout(() => {
+      updateWidgetState();
+    }, 200);
+  };
+
+  window.addEventListener("play", onMediaPlaybackEvent, true);
+  window.addEventListener("pause", onMediaPlaybackEvent, true);
+  window.addEventListener("ended", onMediaPlaybackEvent, true);
+  window.addEventListener("playing", onMediaPlaybackEvent, true);
+
   // Initial Boot
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", () => {
-      scanMediaOnPage();
-      initWidget();
+      updateWidgetState();
     });
   } else {
-    scanMediaOnPage();
-    initWidget();
+    updateWidgetState();
   }
 })();

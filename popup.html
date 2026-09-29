@@ -280,6 +280,22 @@
       background: var(--success);
     }
 
+    .btn-download:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      pointer-events: none;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+    }
+
+    .btn-download.is-playing {
+      background: #10b981;
+    }
+
+    .btn-download.is-playing:hover {
+      background: #059669;
+    }
+
     .btn-sniff {
       background: var(--accent-light);
       color: var(--accent);

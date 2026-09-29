@@ -86,8 +86,7 @@ async function updateBadgeForTab(tab) {
     return;
   }
 
-  const isStream = isSupportedStreamUrl(tab.url);
-  if (isStream) {
+  if (isVideoWatchUrl(tab.url)) {
     chrome.action.setBadgeText({ text: "GET", tabId: tab.id });
     chrome.action.setBadgeBackgroundColor({ color: "#6366f1", tabId: tab.id });
   } else {
@@ -95,12 +94,49 @@ async function updateBadgeForTab(tab) {
   }
 }
 
-function isSupportedStreamUrl(urlStr) {
+function isVideoWatchUrl(urlStr) {
   try {
     const url = new URL(urlStr);
-    return SUPPORTED_STREAM_DOMAINS.some(
-      (d) => url.hostname === d || url.hostname.endsWith("." + d)
-    );
+    const host = url.hostname.toLowerCase();
+    const path = url.pathname.toLowerCase();
+
+    if (host.includes("youtube.com")) {
+      return path.startsWith("/watch") || path.startsWith("/shorts/") || path.startsWith("/live/") || path.startsWith("/embed/");
+    }
+    if (host === "youtu.be") {
+      return path.length > 1;
+    }
+    if (host.includes("tiktok.com")) {
+      return path.includes("/video/") || path.includes("/v/");
+    }
+    if (host.includes("instagram.com")) {
+      return path.startsWith("/reel/") || path.startsWith("/reels/") || path.startsWith("/p/") || path.startsWith("/tv/");
+    }
+    if (host.includes("twitter.com") || host.includes("x.com")) {
+      return path.includes("/status/");
+    }
+    if (host.includes("reddit.com")) {
+      return path.includes("/comments/") || path.includes("/r/");
+    }
+    if (host.includes("facebook.com") || host.includes("fb.watch")) {
+      return path.includes("/watch") || path.includes("/videos") || path.includes("/reel") || host === "fb.watch";
+    }
+    if (host.includes("vimeo.com")) {
+      return /\/\d+/.test(path);
+    }
+    if (host.includes("twitch.tv")) {
+      return path.startsWith("/videos/") || (path.split("/").filter(Boolean).length === 1 && !["directory", "downloads", "jobs", "p"].includes(path.slice(1)));
+    }
+    if (host.includes("bilibili.com")) {
+      return path.startsWith("/video/");
+    }
+    if (host.includes("dailymotion.com")) {
+      return path.startsWith("/video/");
+    }
+    if (host.includes("threads.net")) {
+      return path.includes("/post/");
+    }
+    return false;
   } catch {
     return false;
   }
@@ -321,11 +357,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
 
-  if (request.action === "updateMediaBadge") {
-    const count = Number(request.count) || 0;
+  if (request.action === "mediaStateChanged" || request.action === "updateMediaBadge") {
     const tabId = sender.tab?.id;
     if (tabId) {
-      if (count > 0) {
+      if (request.isPlaying) {
+        chrome.action.setBadgeText({ text: "▶", tabId });
+        chrome.action.setBadgeBackgroundColor({ color: "#10b981", tabId }); // Green indicator for active playing video
+      } else if (request.count > 0) {
+        const count = Number(request.count);
         chrome.action.setBadgeText({ text: count > 9 ? "9+" : String(count), tabId });
         chrome.action.setBadgeBackgroundColor({ color: "#6366f1", tabId });
       } else {

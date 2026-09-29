@@ -106,7 +106,86 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  function isVideoWatchUrl(urlStr) {
+    if (!urlStr) return false;
+    try {
+      const url = new URL(urlStr);
+      const host = url.hostname.toLowerCase();
+      const path = url.pathname.toLowerCase();
+
+      if (host.includes("youtube.com")) {
+        return path.startsWith("/watch") || path.startsWith("/shorts/") || path.startsWith("/live/") || path.startsWith("/embed/");
+      }
+      if (host === "youtu.be") {
+        return path.length > 1;
+      }
+      if (host.includes("tiktok.com")) {
+        return path.includes("/video/") || path.includes("/v/");
+      }
+      if (host.includes("instagram.com")) {
+        return path.startsWith("/reel/") || path.startsWith("/reels/") || path.startsWith("/p/") || path.startsWith("/tv/");
+      }
+      if (host.includes("twitter.com") || host.includes("x.com")) {
+        return path.includes("/status/");
+      }
+      if (host.includes("reddit.com")) {
+        return path.includes("/comments/") || path.includes("/r/");
+      }
+      if (host.includes("facebook.com") || host.includes("fb.watch")) {
+        return path.includes("/watch") || path.includes("/videos") || path.includes("/reel") || host === "fb.watch";
+      }
+      if (host.includes("vimeo.com")) {
+        return /\/\d+/.test(path);
+      }
+      if (host.includes("twitch.tv")) {
+        return path.startsWith("/videos/") || (path.split("/").filter(Boolean).length === 1 && !["directory", "downloads", "jobs", "p"].includes(path.slice(1)));
+      }
+      if (host.includes("bilibili.com")) {
+        return path.startsWith("/video/");
+      }
+      if (host.includes("dailymotion.com")) {
+        return path.startsWith("/video/");
+      }
+      if (host.includes("threads.net")) {
+        return path.includes("/post/");
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
+  function updateDownloadTabBtn(items) {
+    const playingItem = items.find((m) => m.isPlaying);
+    const hasMedia = items.length > 0;
+    const isWatch = currentTab?.url && isVideoWatchUrl(currentTab.url);
+
+    if (playingItem) {
+      downloadTabBtn.disabled = false;
+      downloadTabBtn.classList.add("is-playing");
+      downloadBtnText.textContent = "▶ Send Playing Video";
+      downloadTabBtn.title = `Send active playing video (${playingItem.title}) to Devizee Desktop`;
+    } else if (hasMedia) {
+      downloadTabBtn.disabled = false;
+      downloadTabBtn.classList.remove("is-playing");
+      downloadBtnText.textContent = items.length === 1 ? "Send Detected Video" : `Send Video (${items.length} detected)`;
+      downloadTabBtn.title = "Send detected video on page to Devizee Desktop";
+    } else if (isWatch) {
+      downloadTabBtn.disabled = false;
+      downloadTabBtn.classList.remove("is-playing");
+      downloadBtnText.textContent = "Send Stream to Devizee";
+      downloadTabBtn.title = "Send video page stream to Devizee Desktop";
+    } else {
+      downloadTabBtn.disabled = true;
+      downloadTabBtn.classList.remove("is-playing");
+      downloadBtnText.textContent = "No Video Detected";
+      downloadTabBtn.title = "No video playing or detected on this page. Play a video or use 'Sniff on Page' to inspect elements.";
+    }
+  }
+
   function renderMediaItems(items) {
+    updateDownloadTabBtn(items);
+
     if (!items || items.length === 0) {
       detectedCountBadge.textContent = "";
       downloadAllBtn.style.display = "none";
@@ -175,11 +254,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // 7. Download Tab / Active Video Button
   downloadTabBtn.addEventListener("click", async () => {
-    if (!currentTab || !currentTab.url) return;
+    if (downloadTabBtn.disabled || !currentTab || !currentTab.url) return;
 
-    // Pick currently playing media if any, else tab URL
+    // Pick currently playing media if any, else first detected media, else tab URL
     const playing = detectedMediaItems.find((m) => m.isPlaying);
-    const targetUrl = playing ? playing.url : currentTab.url;
+    const targetUrl = playing ? playing.url : (detectedMediaItems[0]?.url || currentTab.url);
 
     downloadBtnText.textContent = "Relaying...";
     downloadTabBtn.style.opacity = "0.85";
@@ -190,7 +269,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       setTimeout(() => {
         downloadTabBtn.classList.remove("success");
-        downloadBtnText.textContent = "Send to Devizee";
+        updateDownloadTabBtn(detectedMediaItems);
         downloadTabBtn.style.opacity = "1";
       }, 2000);
     });
