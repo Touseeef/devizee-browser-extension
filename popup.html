@@ -1,24 +1,71 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="signature">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Devizee - Privacy Focused</title>
+  <title>Devizee - Privacy-Focused Download Manager</title>
   <style>
-    :root {
+    /* ─── Theme Palettes ─── */
+    :root, [data-theme="signature"] {
       --bg: #090d16;
-      --card-bg: #121826;
-      --card-hover: #172033;
+      --card-bg: #111726;
+      --card-hover: #162035;
       --accent: #6366f1;
       --accent-hover: #4f46e5;
       --accent-light: rgba(99, 102, 241, 0.15);
       --text: #f8fafc;
       --text-muted: #94a3b8;
       --border: rgba(255, 255, 255, 0.08);
+      --border-hover: rgba(99, 102, 241, 0.4);
       --success: #10b981;
       --success-light: rgba(16, 185, 129, 0.15);
       --warning: #f59e0b;
       --radius: 10px;
+    }
+
+    [data-theme="oled"] {
+      --bg: #000000;
+      --card-bg: #09090b;
+      --card-hover: #141416;
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --accent-light: rgba(99, 102, 241, 0.2);
+      --text: #ffffff;
+      --text-muted: #71717a;
+      --border: #27272a;
+      --border-hover: rgba(99, 102, 241, 0.5);
+      --success: #10b981;
+      --success-light: rgba(16, 185, 129, 0.15);
+    }
+
+    [data-theme="frost"] {
+      --bg: #0b1329;
+      --card-bg: #132238;
+      --card-hover: #1c304d;
+      --accent: #38bdf8;
+      --accent-hover: #0284c7;
+      --accent-light: rgba(56, 189, 248, 0.15);
+      --text: #f0fdf4;
+      --text-muted: #94a3b8;
+      --border: rgba(56, 189, 248, 0.16);
+      --border-hover: rgba(56, 189, 248, 0.45);
+      --success: #10b981;
+      --success-light: rgba(16, 185, 129, 0.15);
+    }
+
+    [data-theme="light"] {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --card-hover: #f1f5f9;
+      --accent: #4f46e5;
+      --accent-hover: #4338ca;
+      --accent-light: rgba(79, 70, 229, 0.1);
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: rgba(0, 0, 0, 0.08);
+      --border-hover: rgba(79, 70, 229, 0.35);
+      --success: #059669;
+      --success-light: rgba(5, 150, 105, 0.15);
     }
 
     * {
@@ -29,60 +76,92 @@
     }
 
     body {
-      width: 330px;
+      width: 350px;
+      max-height: 580px;
+      overflow-y: auto;
       background: var(--bg);
       color: var(--text);
-      padding: 16px;
+      padding: 14px;
       user-select: none;
+      transition: background 0.2s ease, color 0.2s ease;
     }
 
+    body::-webkit-scrollbar {
+      width: 5px;
+    }
+    body::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 4px;
+    }
+
+    /* ─── Header ─── */
     .header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 14px;
-      padding-bottom: 12px;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
       border-bottom: 1px solid var(--border);
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
 
     .brand img {
-      width: 26px;
-      height: 26px;
+      width: 24px;
+      height: 24px;
       border-radius: 6px;
     }
 
     .brand-title {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 700;
       letter-spacing: -0.2px;
     }
 
     .brand-badge {
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 600;
-      padding: 2px 7px;
+      padding: 2px 6px;
       border-radius: 20px;
       background: var(--accent-light);
       color: var(--accent);
-      border: 1px solid rgba(99, 102, 241, 0.3);
+      border: 1px solid var(--border-hover);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
     }
 
-    /* Status Card */
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .theme-select {
+      background: var(--card-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 6px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* ─── Status Card ─── */
     .status-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 10px 12px;
+      padding: 8px 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
 
     .status-info {
@@ -102,7 +181,7 @@
 
     .status-dot.online {
       background: var(--success);
-      box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
     }
 
     .status-name {
@@ -111,23 +190,50 @@
     }
 
     .status-tag {
-      font-size: 11px;
+      font-size: 10px;
       color: var(--text-muted);
     }
 
-    /* Active Tab Card */
+    .btn-icon {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px;
+      border-radius: 4px;
+      transition: all 0.15s;
+    }
+
+    .btn-icon:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    /* ─── Active Tab & Tools ─── */
     .media-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 12px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
+    }
+
+    .media-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
     }
 
     .media-title {
-      font-size: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
       color: var(--text-muted);
-      margin-bottom: 4px;
     }
 
     .media-url {
@@ -140,19 +246,24 @@
       margin-bottom: 10px;
     }
 
+    .action-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
     .btn-download {
-      width: 100%;
       background: var(--accent);
       color: #fff;
       border: none;
       border-radius: 8px;
-      padding: 9px 12px;
-      font-size: 13px;
+      padding: 8px 10px;
+      font-size: 12px;
       font-weight: 600;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 6px;
       cursor: pointer;
       transition: background 0.15s, transform 0.05s;
     }
@@ -169,42 +280,163 @@
       background: var(--success);
     }
 
-    /* Toggles */
+    .btn-sniff {
+      background: var(--accent-light);
+      color: var(--accent);
+      border: 1px solid var(--border-hover);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-sniff:hover {
+      background: rgba(99, 102, 241, 0.25);
+      color: #ffffff;
+    }
+
+    /* ─── Detected Media List ─── */
+    .detected-section {
+      margin-bottom: 12px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
     .section-title {
       font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.5px;
       color: var(--text-muted);
-      margin-bottom: 8px;
     }
 
+    .media-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 180px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+
+    .media-list-item {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      transition: border-color 0.15s;
+    }
+
+    .media-list-item:hover {
+      border-color: var(--border-hover);
+      background: var(--card-hover);
+    }
+
+    .media-item-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .media-item-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-bottom: 2px;
+    }
+
+    .media-item-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .badge-playing {
+      background: var(--success-light);
+      color: var(--success);
+      font-weight: 700;
+      font-size: 8px;
+      padding: 1px 4px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .badge-playing::before {
+      content: "";
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--success);
+    }
+
+    .btn-item-dl {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 5px 8px;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+
+    .btn-item-dl:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-item-dl.success {
+      background: var(--success);
+    }
+
+    /* ─── Toggles & Settings ─── */
     .toggle-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 8px 0;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      padding: 6px 0;
+      border-bottom: 1px solid var(--border);
     }
 
     .toggle-label {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text);
       font-weight: 500;
     }
 
     .toggle-desc {
-      font-size: 10px;
+      font-size: 9px;
       color: var(--text-muted);
       margin-top: 1px;
     }
 
-    /* Modern Switch */
     .switch {
       position: relative;
       display: inline-block;
-      width: 36px;
-      height: 20px;
+      width: 32px;
+      height: 18px;
       flex-shrink: 0;
     }
 
@@ -218,7 +450,7 @@
       position: absolute;
       cursor: pointer;
       inset: 0;
-      background-color: #334155;
+      background-color: rgba(255, 255, 255, 0.15);
       transition: 0.2s;
       border-radius: 20px;
     }
@@ -226,8 +458,8 @@
     .slider:before {
       position: absolute;
       content: "";
-      height: 14px;
-      width: 14px;
+      height: 12px;
+      width: 12px;
       left: 3px;
       bottom: 3px;
       background-color: white;
@@ -240,28 +472,27 @@
     }
 
     input:checked + .slider:before {
-      transform: translateX(16px);
+      transform: translateX(14px);
     }
 
-    /* Target Selector */
     .select-target {
       width: 100%;
       background: var(--card-bg);
       color: var(--text);
       border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 7px 10px;
-      font-size: 12px;
+      border-radius: 6px;
+      padding: 6px 8px;
+      font-size: 11px;
       font-weight: 500;
       outline: none;
       margin-top: 6px;
       cursor: pointer;
     }
 
-    /* Footer */
+    /* ─── Footer ─── */
     .footer {
-      margin-top: 14px;
-      padding-top: 10px;
+      margin-top: 12px;
+      padding-top: 8px;
       border-top: 1px solid var(--border);
       display: flex;
       align-items: center;
@@ -273,11 +504,22 @@
     .footer a {
       color: var(--text-muted);
       text-decoration: none;
+      font-weight: 500;
       transition: color 0.15s;
     }
 
     .footer a:hover {
       color: var(--accent);
+    }
+
+    .svg-icon {
+      width: 14px;
+      height: 14px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
     }
   </style>
 </head>
@@ -285,37 +527,89 @@
   <div class="header">
     <div class="brand">
       <img src="icons/icon32.png" alt="Devizee Logo">
-      <span class="brand-title">Devizee</span>
+      <div>
+        <span class="brand-title">Devizee</span>
+        <span class="brand-badge">Privacy-Focused</span>
+      </div>
     </div>
-    <span class="brand-badge">Privacy Focused</span>
+    <div class="header-actions">
+      <select id="themeSelect" class="theme-select" title="Switch Theme">
+        <option value="signature">Signature</option>
+        <option value="oled">OLED Black</option>
+        <option value="frost">Frost</option>
+        <option value="light">Daylight</option>
+      </select>
+    </div>
   </div>
 
   <div class="status-card">
     <div class="status-info">
       <div id="statusDot" class="status-dot"></div>
       <div>
-        <div id="statusText" class="status-name">Scanning...</div>
-        <div id="statusSub" class="status-tag">Port detection</div>
+        <div id="statusText" class="status-name">Scanning Desktop...</div>
+        <div id="statusSub" class="status-tag">Checking port 42421 / 42422</div>
       </div>
     </div>
-    <button id="refreshStatusBtn" style="background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:14px;" title="Refresh Connection">🔄</button>
-  </div>
-
-  <div class="media-card">
-    <div class="media-title">Active Tab</div>
-    <div id="activeTabUrl" class="media-url">Checking active page...</div>
-    <button id="downloadTabBtn" class="btn-download">
-      <span>⚡</span>
-      <span id="downloadBtnText">Download with Devizee</span>
+    <button id="refreshStatusBtn" class="btn-icon" title="Refresh Desktop Status">
+      <svg class="svg-icon" viewBox="0 0 24 24">
+        <polyline points="23 4 23 10 17 10"></polyline>
+        <polyline points="1 20 1 14 7 14"></polyline>
+        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+      </svg>
     </button>
   </div>
 
-  <div class="section-title">Preferences</div>
+  <div class="media-card">
+    <div class="media-header">
+      <div class="media-title">Active Tab</div>
+      <span id="detectedCountBadge" style="font-size: 10px; color: var(--accent); font-weight: 600;"></span>
+    </div>
+    <div id="activeTabUrl" class="media-url">Checking active page...</div>
+    
+    <div class="action-grid">
+      <button id="downloadTabBtn" class="btn-download" title="Relay active tab or video to Devizee Desktop">
+        <svg class="svg-icon" viewBox="0 0 24 24">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        <span id="downloadBtnText">Send to Devizee</span>
+      </button>
+
+      <button id="sniffPageBtn" class="btn-sniff" title="Hover and click any video or download link on the page">
+        <svg class="svg-icon" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="22" y1="12" x2="18" y2="12"></line>
+          <line x1="6" y1="12" x2="2" y2="12"></line>
+          <line x1="12" y1="6" x2="12" y2="2"></line>
+          <line x1="12" y1="22" x2="12" y2="18"></line>
+        </svg>
+        <span>Sniff on Page</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Detected Media List on Current Page -->
+  <div class="detected-section" id="detectedMediaSection">
+    <div class="section-header">
+      <div class="section-title">Detected Media on Page</div>
+      <button id="downloadAllBtn" style="display:none; background:transparent; border:none; color:var(--accent); font-size:10px; font-weight:600; cursor:pointer;">
+        Queue All
+      </button>
+    </div>
+    <div class="media-list" id="mediaListContainer">
+      <div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 10px;">
+        Scanning page for media streams...
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title" style="margin-top: 10px; margin-bottom: 4px;">Preferences</div>
 
   <div class="toggle-row">
     <div>
       <div class="toggle-label">Floating Video Grabber</div>
-      <div class="toggle-desc">Show quick download pill on video players</div>
+      <div class="toggle-desc">Show quick download pill & sniffer on pages</div>
     </div>
     <label class="switch">
       <input type="checkbox" id="toggleFloatingPill">
@@ -325,8 +619,8 @@
 
   <div class="toggle-row">
     <div>
-      <div class="toggle-label">Catch Browser Downloads</div>
-      <div class="toggle-desc">Relay large direct file downloads</div>
+      <div class="toggle-label">Catch Direct Downloads</div>
+      <div class="toggle-desc">Relay browser file downloads to Devizee</div>
     </div>
     <label class="switch">
       <input type="checkbox" id="toggleIntercept">
@@ -334,8 +628,8 @@
     </label>
   </div>
 
-  <div style="margin-top: 10px;">
-    <div class="toggle-label">Target Desktop Edition</div>
+  <div style="margin-top: 8px;">
+    <div class="toggle-label">Target Desktop Application</div>
     <select id="selectTargetMode" class="select-target">
       <option value="auto">Auto-Detect (Lite or Pro)</option>
       <option value="lite">Devizee Lite (Port 42421)</option>

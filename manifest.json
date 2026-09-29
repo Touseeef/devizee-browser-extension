@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Devizee - Privacy Focused",
-  "version": "1.0.0",
-  "description": "Privacy-focused media detector and download relay for Devizee Lite and Devizee Pro desktop apps.",
+  "name": "Devizee - Privacy-Focused Download Manager",
+  "version": "1.1.0",
+  "description": "Privacy-focused universal media sniffer, video detector, and download relay for Devizee desktop apps.",
   "permissions": [
     "downloads",
     "storage",
@@ -32,7 +32,7 @@
   ],
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Devizee - Privacy Focused",
+    "default_title": "Devizee - Privacy-Focused Download Manager",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",

@@ -1,5 +1,5 @@
 /**
- * Devizee - Privacy Focused Browser Extension
+ * Devizee - Privacy-Focused Download Manager
  * Background Service Worker (Manifest V3)
  *
  * Supports Devizee Lite (Port 42421) and Devizee Pro (Port 42422).
@@ -36,6 +36,7 @@ const DEFAULT_SETTINGS = {
   paused: false,             // Master pause
   showFloatingPill: true,    // On-page video grabber button
   minFileSizeMB: 10,         // Minimum file size threshold for interception
+  theme: "signature",        // "signature" | "oled" | "frost" | "light"
   excludedDomains: ["localhost", "127.0.0.1"]
 };
 
@@ -51,6 +52,11 @@ chrome.runtime.onInstalled.addListener(async () => {
       id: "devizee-download-media",
       title: "Download with Devizee",
       contexts: ["page", "link", "video", "audio"]
+    });
+    chrome.contextMenus.create({
+      id: "devizee-inspect-page",
+      title: "Devizee Media & Link Sniffer",
+      contexts: ["page"]
     });
   });
 
@@ -103,17 +109,17 @@ function isSupportedStreamUrl(urlStr) {
 // ─── Context Menu Handler ───
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
-  if (info.menuItemId !== "devizee-download-media") return;
+  if (info.menuItemId === "devizee-download-media") {
+    const targetUrl = info.linkUrl || info.srcUrl || info.pageUrl || tab?.url;
+    if (!targetUrl) return;
 
-  const targetUrl = info.linkUrl || info.srcUrl || info.pageUrl || tab?.url;
-  if (!targetUrl) return;
+    const settings = await chrome.storage.local.get(DEFAULT_SETTINGS);
+    if (settings.paused) return;
 
-  const settings = await chrome.storage.local.get(DEFAULT_SETTINGS);
-  if (settings.paused) {
-    return;
+    await relayUrlToDevizee(targetUrl);
+  } else if (info.menuItemId === "devizee-inspect-page" && tab?.id) {
+    chrome.tabs.sendMessage(tab.id, { action: "startPickerMode" }).catch(() => {});
   }
-
-  await relayUrlToDevizee(targetUrl);
 });
 
 // ─── Core Relay Engine (HTTP -> Native Messaging -> Deep Link) ───
@@ -228,7 +234,7 @@ async function relayUrlToDevizee(urlStr) {
 }
 
 function fallbackToProtocolHandler(urlStr) {
-  const deepLink = `streamgrab://download?url=${encodeURIComponent(urlStr)}`;
+  const deepLink = `devizee://download?url=${encodeURIComponent(urlStr)}`;
   chrome.tabs.create({ url: deepLink, active: false }, (tab) => {
     setTimeout(() => {
       if (tab?.id) chrome.tabs.remove(tab.id).catch(() => {});
@@ -297,6 +303,47 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else {
       sendResponse({ success: false, error: "No URL provided" });
     }
+    return true;
+  }
+
+  if (request.action === "downloadBatch" && Array.isArray(request.urls)) {
+    (async () => {
+      let sent = 0;
+      for (const u of request.urls) {
+        if (u) {
+          await relayUrlToDevizee(u);
+          sent++;
+          await new Promise((r) => setTimeout(r, 200));
+        }
+      }
+      sendResponse({ success: true, count: sent });
+    })();
+    return true;
+  }
+
+  if (request.action === "updateMediaBadge") {
+    const count = Number(request.count) || 0;
+    const tabId = sender.tab?.id;
+    if (tabId) {
+      if (count > 0) {
+        chrome.action.setBadgeText({ text: count > 9 ? "9+" : String(count), tabId });
+        chrome.action.setBadgeBackgroundColor({ color: "#6366f1", tabId });
+      } else {
+        chrome.action.setBadgeText({ text: "", tabId });
+      }
+    }
+    sendResponse({ success: true });
+    return true;
+  }
+
+  if (request.action === "triggerPickerOnTab") {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]?.id) {
+        chrome.tabs.sendMessage(tabs[0].id, { action: "startPickerMode" }, sendResponse);
+      } else {
+        sendResponse({ success: false });
+      }
+    });
     return true;
   }
 });

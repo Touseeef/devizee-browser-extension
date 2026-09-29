@@ -1,19 +1,61 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="signature">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Devizee Extension Settings</title>
   <style>
-    :root {
+    /* ─── Themes ─── */
+    :root, [data-theme="signature"] {
       --bg: #090d16;
-      --card-bg: #121826;
+      --card-bg: #111726;
+      --card-hover: #162035;
       --accent: #6366f1;
       --accent-hover: #4f46e5;
       --text: #f8fafc;
       --text-muted: #94a3b8;
       --border: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(99, 102, 241, 0.6);
       --success: #10b981;
+    }
+
+    [data-theme="oled"] {
+      --bg: #000000;
+      --card-bg: #09090b;
+      --card-hover: #141416;
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --text: #ffffff;
+      --text-muted: #71717a;
+      --border: #27272a;
+      --border-focus: rgba(99, 102, 241, 0.7);
+      --success: #10b981;
+    }
+
+    [data-theme="frost"] {
+      --bg: #0b1329;
+      --card-bg: #132238;
+      --card-hover: #1c304d;
+      --accent: #38bdf8;
+      --accent-hover: #0284c7;
+      --text: #f0fdf4;
+      --text-muted: #94a3b8;
+      --border: rgba(56, 189, 248, 0.16);
+      --border-focus: rgba(56, 189, 248, 0.6);
+      --success: #10b981;
+    }
+
+    [data-theme="light"] {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --card-hover: #f1f5f9;
+      --accent: #4f46e5;
+      --accent-hover: #4338ca;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: rgba(0, 0, 0, 0.1);
+      --border-focus: rgba(79, 70, 229, 0.5);
+      --success: #059669;
     }
 
     * {
@@ -26,52 +68,102 @@
     body {
       background: var(--bg);
       color: var(--text);
-      padding: 32px;
-      max-width: 600px;
+      padding: 36px 20px;
+      max-width: 620px;
       margin: 0 auto;
+      transition: background 0.2s ease, color 0.2s ease;
     }
 
     .header {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
       margin-bottom: 24px;
       padding-bottom: 16px;
       border-bottom: 1px solid var(--border);
     }
 
     .header img {
-      width: 32px;
-      height: 32px;
+      width: 36px;
+      height: 36px;
       border-radius: 8px;
     }
 
     .header h1 {
-      font-size: 18px;
+      font-size: 19px;
       font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .header-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
     }
 
     .card {
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 18px 20px;
+      padding: 20px;
       margin-bottom: 18px;
+      transition: border-color 0.15s ease;
     }
 
     .card-title {
       font-size: 14px;
       font-weight: 600;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
 
     .card-desc {
       font-size: 12px;
       color: var(--text-muted);
       margin-bottom: 14px;
-      line-height: 1.4;
+      line-height: 1.45;
     }
 
+    /* Theme Option Grid */
+    .theme-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .theme-card {
+      background: var(--bg);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .theme-card:hover {
+      border-color: var(--border-focus);
+    }
+
+    .theme-card.active {
+      border-color: var(--accent);
+      background: rgba(99, 102, 241, 0.08);
+    }
+
+    .theme-color-preview {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      margin: 0 auto 6px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .theme-card-name {
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    /* Form controls */
     .form-group {
       margin-bottom: 14px;
     }
@@ -85,22 +177,23 @@
 
     select, input[type="number"], textarea {
       width: 100%;
-      background: #0d121f;
+      background: var(--bg);
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 9px 12px;
+      padding: 10px 12px;
       border-radius: 8px;
       font-size: 13px;
       outline: none;
+      transition: border-color 0.15s;
     }
 
     select:focus, input[type="number"]:focus, textarea:focus {
-      border-color: var(--accent);
+      border-color: var(--border-focus);
     }
 
     textarea {
       resize: vertical;
-      min-height: 70px;
+      min-height: 80px;
       font-family: monospace;
       font-size: 12px;
     }
@@ -109,7 +202,7 @@
       background: var(--accent);
       color: #fff;
       border: none;
-      padding: 10px 18px;
+      padding: 10px 20px;
       font-size: 13px;
       font-weight: 600;
       border-radius: 8px;
@@ -139,6 +232,7 @@
       font-size: 12px;
       color: var(--success);
       opacity: 0;
+      font-weight: 500;
       transition: opacity 0.2s;
     }
 
@@ -152,13 +246,39 @@
     <img src="icons/icon48.png" alt="Devizee Logo">
     <div>
       <h1>Devizee Extension Settings</h1>
-      <div style="font-size: 12px; color: var(--text-muted);">Privacy-Focused Media Relay & Detector</div>
+      <div class="header-sub">Privacy-Focused Download Manager & Universal Media Relay</div>
     </div>
   </div>
 
+  <!-- Appearance / Themes -->
+  <div class="card">
+    <div class="card-title">Theme & Appearance</div>
+    <div class="card-desc">Matches your preferred Devizee desktop aesthetic across popup and options.</div>
+    
+    <div class="theme-grid">
+      <div class="theme-card" data-theme-val="signature">
+        <div class="theme-color-preview" style="background: #090d16; border-color: #6366f1;"></div>
+        <div class="theme-card-name">Signature</div>
+      </div>
+      <div class="theme-card" data-theme-val="oled">
+        <div class="theme-color-preview" style="background: #000000; border-color: #333;"></div>
+        <div class="theme-card-name">OLED Black</div>
+      </div>
+      <div class="theme-card" data-theme-val="frost">
+        <div class="theme-color-preview" style="background: #0b1329; border-color: #38bdf8;"></div>
+        <div class="theme-card-name">Frost</div>
+      </div>
+      <div class="theme-card" data-theme-val="light">
+        <div class="theme-color-preview" style="background: #ffffff; border-color: #4f46e5;"></div>
+        <div class="theme-card-name">Daylight</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Connection Mode -->
   <div class="card">
     <div class="card-title">Desktop Connection Mode</div>
-    <div class="card-desc">Choose how the extension talks to your Devizee desktop application.</div>
+    <div class="card-desc">Select how the extension communicates with your local Devizee desktop application.</div>
     <div class="form-group">
       <select id="targetMode">
         <option value="auto">Auto-Detect (Devizee Lite or Devizee Pro)</option>
@@ -168,14 +288,15 @@
     </div>
   </div>
 
+  <!-- Interception Settings -->
   <div class="card">
-    <div class="card-title">Browser Download Interception</div>
-    <div class="card-desc">Optionally intercept normal browser downloads and route them through Devizee's accelerated engine.</div>
+    <div class="card-title">Direct File Interception</div>
+    <div class="card-desc">Optionally intercept normal browser downloads and route them through Devizee's accelerated multithreaded engine.</div>
     
     <div class="form-group">
       <label class="form-label">Minimum File Size Threshold (MB)</label>
       <input type="number" id="minFileSizeMB" min="1" max="1000" value="10">
-      <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Files smaller than this threshold are handled by your browser directly.</div>
+      <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Files smaller than this threshold remain handled by Chrome's standard downloader.</div>
     </div>
 
     <div class="form-group">
@@ -184,7 +305,7 @@
     </div>
   </div>
 
-  <div style="margin-top: 20px;">
+  <div style="margin-top: 24px;">
     <button id="saveBtn" class="btn">Save Changes</button>
     <button id="resetBtn" class="btn btn-secondary">Reset to Defaults</button>
     <span id="saveStatus" class="save-status">✓ Settings saved!</span>
