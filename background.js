@@ -36,7 +36,7 @@ const DEFAULT_SETTINGS = {
   paused: false,             // Master pause
   showFloatingPill: true,    // On-page video grabber button
   minFileSizeMB: 10,         // Minimum file size threshold for interception
-  theme: "signature",        // "signature" | "oled" | "frost" | "light"
+  theme: "dark",             // "dark" | "light"
   excludedDomains: ["localhost", "127.0.0.1"]
 };
 
@@ -158,6 +158,16 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   }
 });
 
+// Keyboard Shortcut Command (Alt+Shift+S)
+chrome.commands.onCommand.addListener(async (command) => {
+  if (command === "toggle-sniffer") {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab?.id) {
+      chrome.tabs.sendMessage(tab.id, { action: "startPickerMode" }).catch(() => {});
+    }
+  }
+});
+
 // ─── Core Relay Engine (HTTP -> Native Messaging -> Deep Link) ───
 
 /**
@@ -217,7 +227,7 @@ async function checkDesktopStatus() {
  */
 async function relayUrlToDevizee(urlStr) {
   if (!urlStr || (!urlStr.startsWith("http://") && !urlStr.startsWith("https://"))) {
-    return { success: false, error: "Invalid HTTP/HTTPS URL" };
+    return { success: false, error: "invalid_url", message: "Invalid HTTP/HTTPS URL" };
   }
 
   // 1. Try Local HTTP Bridge first
@@ -266,7 +276,66 @@ async function relayUrlToDevizee(urlStr) {
 
   // 3. Fallback to Deep Link Protocol (devizee:// and streamgrab://)
   fallbackToProtocolHandler(urlStr);
-  return { success: true, transport: "protocol_handler" };
+  return {
+    success: false,
+    error: "app_closed",
+    message: "Devizee Desktop is not running. Please open Devizee Lite or Devizee Pro to start downloads.",
+    transport: "protocol_handler"
+  };
+}
+
+/**
+ * Sends a list of URLs to Devizee desktop app in batch.
+ */
+async function relayBatchUrlsToDevizee(urls) {
+  if (!Array.isArray(urls) || urls.length === 0) {
+    return { success: false, error: "no_urls", message: "No URLs provided" };
+  }
+
+  const validUrls = urls.filter((u) => typeof u === "string" && (u.startsWith("http://") || u.startsWith("https://")));
+  if (validUrls.length === 0) {
+    return { success: false, error: "invalid_urls", message: "No valid HTTP/HTTPS URLs" };
+  }
+
+  // Check desktop status
+  const status = await checkDesktopStatus();
+  if (!status.online || !status.port) {
+    return {
+      success: false,
+      error: "app_closed",
+      message: "Devizee Desktop is not running. Please open Devizee Lite or Devizee Pro to receive downloads."
+    };
+  }
+
+  // Send to Local HTTP Bridge (/batch-download)
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
+    const res = await fetch(`http://127.0.0.1:${status.port}/batch-download`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ urls: validUrls }),
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    if (res.ok) {
+      const data = await res.json().catch(() => ({}));
+      return { success: true, transport: "http", app: status.app, count: data.count || validUrls.length };
+    } else {
+      return {
+        success: false,
+        error: "http_error",
+        message: `Devizee returned error: HTTP ${res.status}`
+      };
+    }
+  } catch (e) {
+    console.warn("[Devizee] Batch HTTP relay failed:", e);
+    return {
+      success: false,
+      error: "app_closed",
+      message: "Connection to Devizee Desktop failed. Please ensure Devizee is running."
+    };
+  }
 }
 
 function fallbackToProtocolHandler(urlStr) {
@@ -279,6 +348,49 @@ function fallbackToProtocolHandler(urlStr) {
 }
 
 // ─── Passive Download Interception (Optional, User-Gated) ───
+
+function formatBytes(bytes) {
+  if (!bytes || bytes <= 0 || isNaN(bytes)) return "";
+  const units = ["B", "KB", "MB", "GB"];
+  let i = 0;
+  let val = bytes;
+  while (val >= 1024 && i < units.length - 1) {
+    val /= 1024;
+    i++;
+  }
+  return `${val.toFixed(val >= 10 ? 0 : 1)} ${units[i]}`;
+}
+
+function notifyUser({ title, message, isError = false }) {
+  // 1. Chrome System / OS Notification
+  try {
+    if (chrome.notifications) {
+      chrome.notifications.create({
+        type: "basic",
+        iconUrl: "icons/icon128.png",
+        title: title || "Devizee",
+        message: message || "",
+        priority: 1
+      }, () => {
+        if (chrome.runtime.lastError) {
+          // Ignore
+        }
+      });
+    }
+  } catch { }
+
+  // 2. Active Tab In-Page Toast
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (tabs && tabs[0]?.id) {
+      chrome.tabs.sendMessage(tabs[0].id, {
+        action: "showToast",
+        message: `${title}: ${message}`,
+        isError,
+        duration: 4500
+      }).catch(() => {});
+    }
+  });
+}
 
 chrome.downloads.onDeterminingFilename.addListener((downloadItem) => {
   handleDownloadInterception(downloadItem);
@@ -308,6 +420,25 @@ async function handleDownloadInterception(downloadItem) {
       return;
     }
 
+    const fileName = downloadItem.filename ? downloadItem.filename.replace(/^.*[\\\/]/, "") : "File";
+    const sizeStr = downloadItem.fileSize > 0 ? ` (${formatBytes(downloadItem.fileSize)})` : "";
+
+    // 1. CHECK IF DEVIZEE DESKTOP IS RUNNING BEFORE CANCELLING BROWSER DOWNLOAD!
+    const status = await checkDesktopStatus();
+
+    if (!status.online) {
+      // Devizee is closed: DO NOT CANCEL browser download!
+      // Let browser download automatically as fallback, and inform user!
+      console.log("[Devizee] Desktop app closed. Allowing browser to download:", fileName);
+      notifyUser({
+        title: "Devizee Desktop is Closed",
+        message: `${fileName}${sizeStr} downloaded with browser automatically. Open Devizee Lite or Pro to intercept.`,
+        isError: true
+      });
+      return;
+    }
+
+    // 2. Devizee is running: Cancel browser download and hand off to desktop app
     chrome.downloads.cancel(downloadItem.id, () => {
       if (chrome.runtime.lastError) {
         console.warn("[Devizee] Cancel download error:", chrome.runtime.lastError.message);
@@ -318,7 +449,23 @@ async function handleDownloadInterception(downloadItem) {
       chrome.downloads.erase({ id: downloadItem.id }).catch(() => {});
     }, 1000);
 
-    await relayUrlToDevizee(urlStr);
+    const relayResult = await relayUrlToDevizee(urlStr);
+
+    if (relayResult && relayResult.success) {
+      notifyUser({
+        title: "Sent to Devizee Desktop",
+        message: `${fileName}${sizeStr} transferred to ${relayResult.app || "Devizee Lite"}`,
+        isError: false
+      });
+    } else {
+      // Fallback safeguard: if relay failed unexpectedly, restart download in browser so file is NEVER lost
+      chrome.downloads.download({ url: urlStr }).catch(() => {});
+      notifyUser({
+        title: "Devizee Relay Failed",
+        message: `${fileName} restarted with browser automatically.`,
+        isError: true
+      });
+    }
   } catch (err) {
     console.error("[Devizee] Interception error:", err);
   }
@@ -342,18 +489,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
 
-  if (request.action === "downloadBatch" && Array.isArray(request.urls)) {
-    (async () => {
-      let sent = 0;
-      for (const u of request.urls) {
-        if (u) {
-          await relayUrlToDevizee(u);
-          sent++;
-          await new Promise((r) => setTimeout(r, 200));
-        }
-      }
-      sendResponse({ success: true, count: sent });
-    })();
+  if ((request.action === "downloadBatchUrls" || request.action === "downloadBatch") && Array.isArray(request.urls)) {
+    relayBatchUrlsToDevizee(request.urls).then(sendResponse);
     return true;
   }
 
@@ -379,6 +516,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs[0]?.id) {
         chrome.tabs.sendMessage(tabs[0].id, { action: "startPickerMode" }, sendResponse);
+      } else {
+        sendResponse({ success: false });
+      }
+    });
+    return true;
+  }
+
+  if (request.action === "triggerBatchCollectorOnTab") {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]?.id) {
+        chrome.tabs.sendMessage(tabs[0].id, { action: "startBatchCollectorMode" }, sendResponse);
       } else {
         sendResponse({ success: false });
       }

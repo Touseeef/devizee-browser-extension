@@ -76,8 +76,8 @@
     }
 
     body {
-      width: 350px;
-      max-height: 580px;
+      width: 410px;
+      max-height: 600px;
       overflow-y: auto;
       background: var(--bg);
       color: var(--text);
@@ -134,22 +134,43 @@
       letter-spacing: 0.3px;
     }
 
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 6px;
+    [data-theme="dark"] {
+      --bg: #090d16;
+      --card-bg: #111726;
+      --card-hover: #162035;
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --accent-light: rgba(99, 102, 241, 0.15);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: rgba(255, 255, 255, 0.08);
+      --border-hover: rgba(99, 102, 241, 0.4);
+      --success: #10b981;
+      --success-light: rgba(16, 185, 129, 0.15);
+      --warning: #f59e0b;
+      --radius: 10px;
     }
 
-    .theme-select {
+    .btn-theme-toggle {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
       background: var(--card-bg);
-      color: var(--text);
       border: 1px solid var(--border);
-      border-radius: 6px;
-      font-size: 10px;
-      font-weight: 600;
-      padding: 3px 6px;
-      outline: none;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
+      transition: all 0.15s ease;
+      outline: none;
+    }
+
+    .btn-theme-toggle:hover {
+      background: var(--card-hover);
+      color: var(--accent);
+      border-color: var(--border-hover);
+      transform: scale(1.05);
     }
 
     /* ─── Status Card ─── */
@@ -537,28 +558,407 @@
       stroke-linecap: round;
       stroke-linejoin: round;
     }
+
+    /* ─── Nav Tabs ─── */
+    .nav-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+      background: var(--card-bg);
+      padding: 3px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+    }
+
+    .nav-tab {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 7px 10px;
+      border-radius: 7px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .nav-tab:hover {
+      color: var(--text);
+    }
+
+    .nav-tab.active {
+      background: var(--accent);
+      color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    }
+
+    .tab-badge {
+      font-size: 9px;
+      padding: 1px 5px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+      font-family: monospace;
+    }
+
+    /* ─── Inactive / Disabled Buttons for Blacklisted Sites ─── */
+    .btn-disabled,
+    button:disabled {
+      opacity: 0.42 !important;
+      cursor: not-allowed !important;
+      filter: grayscale(0.5);
+      pointer-events: none;
+    }
+
+    /* ─── Download History Tab Styles ─── */
+    .filter-pills {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 10px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .filter-pill {
+      padding: 3px 9px;
+      border-radius: 12px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+
+    .filter-pill:hover {
+      border-color: var(--border-hover);
+      color: var(--text);
+    }
+
+    .filter-pill.active {
+      background: var(--accent-light);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .history-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 430px;
+      overflow-y: auto;
+      padding-right: 2px;
+    }
+
+    .history-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .history-card:hover {
+      border-color: var(--border-hover);
+      background: var(--card-hover);
+    }
+
+    .history-top-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .history-title-wrap {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .history-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .history-subtitle {
+      font-size: 10px;
+      color: var(--text-muted);
+      margin-top: 2px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .history-format-badge {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: var(--accent-light);
+      color: var(--accent);
+      text-transform: uppercase;
+      font-family: monospace;
+      letter-spacing: 0.3px;
+    }
+
+    .history-status-badge {
+      font-size: 9px;
+      font-weight: 600;
+      padding: 1px 6px;
+      border-radius: 10px;
+      background: var(--card-hover);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      font-family: monospace;
+      white-space: nowrap;
+    }
+
+    .history-status-badge.completed {
+      background: var(--success-light);
+      color: var(--success);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .history-status-badge.downloading {
+      background: var(--accent-light);
+      color: var(--accent);
+      border-color: var(--border-hover);
+    }
+
+    .history-status-badge.paused {
+      background: rgba(148, 163, 184, 0.12);
+      color: var(--text-muted);
+      border-color: rgba(148, 163, 184, 0.25);
+    }
+
+    .history-progress-wrap {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 2px;
+    }
+
+    .history-progress-bar {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: width 0.2s ease;
+    }
+
+    .history-progress-bar.paused {
+      background: var(--text-muted);
+    }
+
+    .history-stats-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 10px;
+      font-family: monospace;
+      color: var(--text-muted);
+    }
+
+    .history-actions {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .btn-history-action {
+      padding: 3px 7px;
+      border-radius: 5px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+
+    .btn-history-action:hover {
+      background: var(--accent-light);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* ─── Batch Link Collector Tab Styles ─── */
+    .batch-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 9px 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      transition: all 0.15s;
+    }
+
+    .batch-card:hover {
+      border-color: var(--border-hover);
+      background: var(--card-hover);
+    }
+
+    .batch-top-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .batch-title-wrap {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .batch-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .batch-url {
+      font-size: 10px;
+      color: var(--text-muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-family: monospace;
+      margin-top: 2px;
+    }
+
+    .batch-host-badge {
+      font-size: 9px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: var(--accent-light);
+      color: var(--accent);
+      font-family: monospace;
+    }
+
+    .btn-batch-remove {
+      background: transparent;
+      border: 1px solid transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 3px 6px;
+      border-radius: 5px;
+      font-size: 10px;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .btn-batch-remove:hover {
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.12);
+      border-color: rgba(239, 68, 68, 0.25);
+    }
+
+    .btn-batch-copy {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 3px 6px;
+      border-radius: 5px;
+      font-size: 10px;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .btn-batch-copy:hover {
+      color: var(--text);
+      border-color: var(--border-hover);
+    }
   </style>
 </head>
 <body>
   <div class="header">
     <div class="brand">
       <img src="icons/icon32.png" alt="Devizee Logo">
-      <div>
-        <span class="brand-title">Devizee</span>
-        <span class="brand-badge">Privacy-Focused</span>
-      </div>
+      <div class="brand-title">Devizee</div>
     </div>
     <div class="header-actions">
-      <select id="themeSelect" class="theme-select" title="Switch Theme">
-        <option value="signature">Signature</option>
-        <option value="oled">OLED Black</option>
-        <option value="frost">Frost</option>
-        <option value="light">Daylight</option>
-      </select>
+      <button id="themeToggleBtn" class="btn-theme-toggle" title="Toggle Theme (Dark / Light)" aria-label="Toggle Theme">
+        <svg id="themeIconSun" class="svg-icon" viewBox="0 0 24 24" style="display:none;">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg id="themeIconMoon" class="svg-icon" viewBox="0 0 24 24">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+      </button>
     </div>
   </div>
 
-  <div class="status-card">
+  <div class="nav-tabs">
+    <button type="button" id="tabGrabberBtn" class="nav-tab active">
+      <svg class="svg-icon" viewBox="0 0 24 24">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+        <polyline points="7 10 12 15 17 10"></polyline>
+        <line x1="12" y1="15" x2="12" y2="3"></line>
+      </svg>
+      <span>Media Grabber</span>
+    </button>
+    <button type="button" id="tabBatchBtn" class="nav-tab" title="Batch Link Collector">
+      <svg class="svg-icon" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9"></circle>
+        <circle cx="12" cy="12" r="5"></circle>
+        <circle cx="12" cy="12" r="1.5" fill="currentColor"></circle>
+        <path d="M12 3v3m0 12v3M3 12h3m12 0h3"></path>
+      </svg>
+      <span>Batch</span>
+      <span id="batchCountBadge" class="tab-badge" style="display:none;">0</span>
+    </button>
+    <button type="button" id="tabHistoryBtn" class="nav-tab">
+      <svg class="svg-icon" viewBox="0 0 24 24">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+        <polyline points="14 2 14 8 20 8"></polyline>
+        <line x1="16" y1="13" x2="8" y2="13"></line>
+        <line x1="16" y1="17" x2="8" y2="17"></line>
+      </svg>
+      <span>Downloads</span>
+      <span id="historyCountBadge" class="tab-badge" style="display:none;">0</span>
+    </button>
+  </div>
+
+  <!-- TAB 1: Media Grabber -->
+  <div id="panelGrabber" class="tab-panel">
+    <div class="status-card">
     <div class="status-info">
       <div id="statusDot" class="status-dot"></div>
       <div>
@@ -603,6 +1003,16 @@
         <span>Sniff on Page</span>
       </button>
     </div>
+
+    <button type="button" id="batchCollectPageBtn" class="btn-sniff" style="margin-top: 8px; width: 100%; justify-content: center; gap: 7px; padding: 7px 10px;" title="Activate Batch Link Collector mode: click multiple videos or links on page to collect them">
+      <svg class="svg-icon" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9"></circle>
+        <circle cx="12" cy="12" r="5"></circle>
+        <circle cx="12" cy="12" r="1.5" fill="currentColor"></circle>
+        <path d="M12 3v3m0 12v3M3 12h3m12 0h3"></path>
+      </svg>
+      <span>Batch Link Collector (Radar)</span>
+    </button>
   </div>
 
   <!-- Detected Media List on Current Page -->
@@ -633,6 +1043,16 @@
     </label>
   </div>
 
+  <div id="siteBlacklistRow" style="margin-top: -2px; margin-bottom: 8px; padding: 6px 10px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; display: flex; align-items: center; justify-content: space-between; font-size: 11px;">
+    <div style="display: flex; align-items: center; gap: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 190px;">
+      <span style="color: var(--text-muted);">Site:</span>
+      <span id="currentDomainLabel" style="color: var(--text); font-weight: 600; font-family: monospace; overflow: hidden; text-overflow: ellipsis;">--</span>
+    </div>
+    <button type="button" id="toggleSiteBlacklistBtn" style="background: transparent; border: 1px solid var(--border-hover); color: var(--accent); font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 6px; cursor: pointer; transition: all 0.15s; white-space: nowrap;">
+      Blacklist Site
+    </button>
+  </div>
+
   <div class="toggle-row">
     <div>
       <div class="toggle-label">Catch Direct Downloads</div>
@@ -652,6 +1072,75 @@
       <option value="pro">Devizee Pro (Port 42422)</option>
     </select>
   </div>
+  </div> <!-- /panelGrabber -->
+
+  <!-- TAB 2: Download History -->
+  <div id="panelHistory" class="tab-panel" style="display:none;">
+    <!-- Filter Pills: All, Video, Audio, Docs/PDF, Other -->
+    <div class="filter-pills" id="historyFilterPills">
+      <button type="button" class="filter-pill active" data-filter="all">All</button>
+      <button type="button" class="filter-pill" data-filter="video">Video</button>
+      <button type="button" class="filter-pill" data-filter="audio">Audio</button>
+      <button type="button" class="filter-pill" data-filter="documents">Docs / PDF</button>
+      <button type="button" class="filter-pill" data-filter="other">Other</button>
+    </div>
+
+    <!-- Live Downloads List -->
+    <div id="historyListContainer" class="history-list">
+      <div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 24px;">
+        Loading download history...
+      </div>
+    </div>
+  </div> <!-- /panelHistory -->
+
+  <!-- TAB 3: Batch Links Collector -->
+  <div id="panelBatch" class="tab-panel" style="display:none;">
+    <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 9px; padding: 10px 12px; margin-bottom: 10px;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="color: var(--accent); width: 15px; height: 15px;">
+            <circle cx="12" cy="12" r="9"></circle>
+            <circle cx="12" cy="12" r="5"></circle>
+            <circle cx="12" cy="12" r="1.5" fill="currentColor"></circle>
+            <path d="M12 3v3m0 12v3M3 12h3m12 0h3"></path>
+          </svg>
+          <span style="font-size: 12px; font-weight: 700; color: var(--text);">Batch Link Collector</span>
+        </div>
+        <span id="batchSummaryCount" style="font-size: 11px; font-family: monospace; font-weight: 700; color: var(--accent); background: var(--accent-light); padding: 2px 7px; border-radius: 10px;">0 links</span>
+      </div>
+      <p style="font-size: 10px; color: var(--text-muted); line-height: 1.4; margin-bottom: 10px;">
+        Click multiple videos or links on any webpage to collect them into this batch without leaving the page. Duplicates are automatically ignored.
+      </p>
+      <div style="display: flex; gap: 6px;">
+        <button type="button" id="startBatchSnifferPopupBtn" class="btn-sniff" style="flex: 1; padding: 7px 8px; font-size: 11px; justify-content: center; gap: 5px;" title="Activate Batch Link Collector mode on current tab">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 13px; height: 13px;">
+            <circle cx="12" cy="12" r="9"></circle>
+            <circle cx="12" cy="12" r="5"></circle>
+            <path d="M12 3v3m0 12v3M3 12h3m12 0h3"></path>
+          </svg>
+          <span>Pick on Page</span>
+        </button>
+        <button type="button" id="sendAllBatchBtn" class="btn-download" style="flex: 1.3; padding: 7px 8px; font-size: 11px; justify-content: center; gap: 5px; background: var(--success); border-color: rgba(16,185,129,0.3);" title="Send all collected links to Devizee Desktop Batch Download">
+          <svg class="svg-icon" viewBox="0 0 24 24" style="width: 13px; height: 13px;">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span id="sendAllBatchBtnText">Send to Devizee</span>
+        </button>
+        <button type="button" id="clearAllBatchBtn" class="btn-history-action" style="padding: 7px 9px; font-size: 11px; justify-content: center;" title="Clear all collected links in batch">
+          Clear
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Batch Links List -->
+    <div id="batchListContainer" class="history-list" style="max-height: 380px;">
+      <div style="font-size: 11px; color: var(--text-muted); text-align: center; padding: 24px;">
+        No batch links collected yet.
+      </div>
+    </div>
+  </div> <!-- /panelBatch -->
 
   <div class="footer">
     <span>🔒 100% Local • Zero Telemetry</span>

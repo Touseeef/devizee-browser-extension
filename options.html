@@ -6,7 +6,7 @@
   <title>Devizee Extension Settings</title>
   <style>
     /* ─── Themes ─── */
-    :root, [data-theme="signature"] {
+    :root, [data-theme="dark"], [data-theme="signature"] {
       --bg: #090d16;
       --card-bg: #111726;
       --card-hover: #162035;
@@ -256,21 +256,13 @@
     <div class="card-desc">Matches your preferred Devizee desktop aesthetic across popup and options.</div>
     
     <div class="theme-grid">
-      <div class="theme-card" data-theme-val="signature">
+      <div class="theme-card" data-theme-val="dark">
         <div class="theme-color-preview" style="background: #090d16; border-color: #6366f1;"></div>
-        <div class="theme-card-name">Signature</div>
-      </div>
-      <div class="theme-card" data-theme-val="oled">
-        <div class="theme-color-preview" style="background: #000000; border-color: #333;"></div>
-        <div class="theme-card-name">OLED Black</div>
-      </div>
-      <div class="theme-card" data-theme-val="frost">
-        <div class="theme-color-preview" style="background: #0b1329; border-color: #38bdf8;"></div>
-        <div class="theme-card-name">Frost</div>
+        <div class="theme-card-name">Dark Mode</div>
       </div>
       <div class="theme-card" data-theme-val="light">
         <div class="theme-color-preview" style="background: #ffffff; border-color: #4f46e5;"></div>
-        <div class="theme-card-name">Daylight</div>
+        <div class="theme-card-name">Light Mode</div>
       </div>
     </div>
   </div>
@@ -302,6 +294,17 @@
     <div class="form-group">
       <label class="form-label">Excluded Domains (one per line)</label>
       <textarea id="excludedDomains" placeholder="localhost&#10;127.0.0.1&#10;bank.com"></textarea>
+    </div>
+  </div>
+
+  <!-- Floating Grabber Blacklist -->
+  <div class="card">
+    <div class="card-title">Floating Grabber Blacklisted Sites</div>
+    <div class="card-desc">The floating grabber pill will never appear on these websites. Enter one domain per line (e.g. netflix.com, example.com).</div>
+    
+    <div class="form-group">
+      <label class="form-label">Blacklisted Domains (one per line)</label>
+      <textarea id="blacklistedDomains" placeholder="netflix.com&#10;disneyplus.com&#10;primevideo.com&#10;hulu.com&#10;max.com"></textarea>
     </div>
   </div>
 

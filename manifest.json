@@ -8,7 +8,8 @@
     "storage",
     "contextMenus",
     "tabs",
-    "nativeMessaging"
+    "nativeMessaging",
+    "notifications"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -43,6 +44,14 @@
   "options_ui": {
     "page": "options.html",
     "open_in_tab": false
+  },
+  "commands": {
+    "toggle-sniffer": {
+      "suggested_key": {
+        "default": "Alt+Shift+S"
+      },
+      "description": "Activate Devizee Media & Link Sniffer"
+    }
   },
   "icons": {
     "16": "icons/icon16.png",
